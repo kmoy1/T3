@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { BOARD_SIZE } from "./Constants";
 
-function Square({value, onSquareClick}) {
-	return (
-	<button className="square" onClick={onSquareClick}>
-		{value}
-	</button>
-	);
+function Square({value, onSquareClick, winningSquare}) {
+    if (winningSquare) {
+        return <button className="winner-square" onClick={onSquareClick}>{value}</button>
+    }
+    return <button className="square" onClick={onSquareClick}>{value}</button>
+    
 }
 
 // Squares = position before X (or O) makes its move.
 function Board({ xIsNext, squares, onPlay }) {  
 	function handleClick(i) {
-		if (squares[i] || calculateWinner(squares)) {
+		if (squares[i] || (calculateWinner(squares)[0] !== null)) {
 			return;
 		}
 		const nextSquares = squares.slice();
@@ -24,18 +24,27 @@ function Board({ xIsNext, squares, onPlay }) {
 		onPlay(nextSquares);
 	}
 
-	const winner = calculateWinner(squares);
+	let winnerInfo = calculateWinner(squares);
+    const winner = winnerInfo[0], winningSquareIndices = winnerInfo[1];
+    console.log("WINNER: ", winner);
 	let status;
 	if (winner) {
 		status = "Winner: " + winner;
-	} else {
+	} else if (!squares.includes(null)) { // Squares filled with no winner.
+        status = "DRAW."
+    } 
+    else {
 		status = "Next player: " + (xIsNext ? "X" : "O");
 	}
 	let board = [];
 	for (let i = 0; i < BOARD_SIZE; i++) {
 		let boardRow = [];
 		for (let j = i * BOARD_SIZE; j < (i * BOARD_SIZE) + BOARD_SIZE; j++) {
-			boardRow.push(<Square value={squares[j]} onSquareClick={() => handleClick(j)}/>)
+            if (winningSquareIndices && winningSquareIndices.includes(j)) {
+                boardRow.push(<Square value={squares[j]} onSquareClick={() => handleClick(j)} winningSquare={true}/>)
+            } else {
+                boardRow.push(<Square value={squares[j]} onSquareClick={() => handleClick(j)} winningSquare={false}/>)
+            }
 		}
 		board.push(<div className="board-row">{boardRow}</div>);
 	}
@@ -57,6 +66,7 @@ export default function Game() {
 	const xIsNext = currentMove % 2 === 0;
 	const currentSquares = history[currentMove];
 
+    // nextSquares = position after move is made.
 	function handlePlay(nextSquares) {
 		const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
 		setHistory(nextHistory);
@@ -69,7 +79,7 @@ export default function Game() {
 	const movesList = (moveListAsc? moveNumberList : [...moveNumberList].reverse()).map((move) => {
 		let description;
 		if (move > 0) {
-			description = 'Go to move #' + move;
+			description = 'Move #' + move + ": " + moveNumToPlayer(move) + " on " + convertTo2D(findDiffIndex(history[move], history[move-1]));
 		} else {
 			description = 'Go to game start';
 		}
@@ -110,8 +120,32 @@ function calculateWinner(squares) {
 	for (let i = 0; i < lines.length; i++) {
 		const [a, b, c] = lines[i];
 		if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-			return squares[a];
+			return [squares[a], [a,b,c]];
 		}
 	}
-	return null;
+	return [null, null];
+}
+
+// Move 0 = start. 
+function moveNumToPlayer(move) {
+    return (move % 2 === 0 ? "O" : "X");
+}
+
+function convertTo2D(coord) {
+    const x = coord % 3;
+    const y = Math.floor(coord / 3);
+    return `(${x},${y})`
+}
+
+// Find differing index between two position arrays.
+function findDiffIndex(pos1, pos2) {
+    if (pos1.length !== pos2.length) {
+        throw new Error("Position arrays need to have the same length.");
+    }
+    for (let i = 0; i < pos1.length; i++) {
+        if (pos1[i] !== pos2[i]) {
+          return i;
+        }
+    }
+    return -1; //Shouldn't be here either.
 }
