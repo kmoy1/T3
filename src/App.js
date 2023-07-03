@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Button } from 'react-native';
 import { BOARD_SIZE } from "./Constants";
 
 function Square({value, onSquareClick, winningSquare}) {
@@ -92,16 +93,19 @@ export default function Game() {
 
 	return (
 		<div className="game">
-			<div className="game-board">
+			<div className="game-board-container">
 				<Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
 			</div>
-			<div className="game-info">
-				<ol>{movesList}</ol>
-			</div>
-			<div className="game-move-number-display">
-				You are at move # {currentMove}.
-			</div>
-			<button onClick={() => {setMoveListAsc(!moveListAsc)}}>Change Move Order</button>
+            <div class="break"></div>
+            <div className="game-info-container">
+                <div className="game-info">
+                    <ol>{movesList}</ol>
+                </div>
+                <div className="game-move-number-display">
+                    You are at move # {currentMove}.
+                </div>
+                <Button title="Change Move Order" onPress={() => {setMoveListAsc(!moveListAsc)}} />
+            </div>
 		</div>
 	);
 }

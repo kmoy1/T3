@@ -2,6 +2,8 @@
   "dependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-native": "^0.72.1",
+    "react-native-web": "^0.19.6",
     "react-scripts": "^5.0.0"
   },
   "main": "/index.js",
